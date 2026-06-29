@@ -1,6 +1,10 @@
 import { useState } from "react";
 import { useDispatch } from "react-redux";
-import { toggleLike, addComment } from "../../features/posts/postSlice";
+import {
+  toggleLike,
+  addComment,
+  deletePost,
+} from "../../features/posts/postSlice";
 import { useSelector } from "react-redux";
 import {
   Heart,
@@ -13,6 +17,7 @@ import {
 
 export default function Feed() {
   const { posts, isLoading } = useSelector((state) => state.posts);
+
 
   if (isLoading) {
     return (
@@ -41,6 +46,9 @@ export default function Feed() {
 
 function PostCard({ post }) {
   const dispatch = useDispatch();
+  const { user } = useSelector((state) => state.auth);
+
+
   const [saved, setSaved] = useState(false);
   const [showComments, setShowComments] = useState(false);
   const [comment, setComment] = useState("");
@@ -77,9 +85,18 @@ function PostCard({ post }) {
           </div>
         </div>
 
-        <button>
-          <MoreHorizontal className="w-5 h-5 text-slate-400" />
-        </button>
+        {user?._id === author._id && (
+          <button
+            onClick={() => {
+              if (window.confirm("Delete this post?")) {
+                dispatch(deletePost(post._id));
+              }
+            }}
+            className="text-red-500 text-sm hover:text-red-700"
+          >
+            Delete
+          </button>
+        )}
       </div>
 
       {/* Content */}

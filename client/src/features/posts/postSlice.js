@@ -62,6 +62,19 @@ export const toggleLike = createAsyncThunk(
     }
   },
 );
+export const deletePost = createAsyncThunk(
+  "posts/deletePost",
+  async (postId, thunkAPI) => {
+    try {
+      await postService.deletePost(postId);
+      return postId;
+    } catch (error) {
+      return thunkAPI.rejectWithValue(
+        error.response?.data?.message || error.message,
+      );
+    }
+  },
+);
 
 const postSlice = createSlice({
   name: "posts",
@@ -108,6 +121,9 @@ const postSlice = createSlice({
         state.posts = state.posts.map((post) =>
           post._id === action.payload._id ? action.payload : post,
         );
+      })
+      .addCase(deletePost.fulfilled, (state, action) => {
+        state.posts = state.posts.filter((post) => post._id !== action.payload);
       })
       .addCase(createPost.rejected, (state, action) => {
         state.isLoading = false;
