@@ -1,3 +1,4 @@
+const postRoutes = require("./routes/postRoutes");
 const express = require("express");
 const cors = require("cors");
 const helmet = require("helmet");
@@ -23,5 +24,6 @@ app.get("/api/health", (req, res) => {
   });
 });
 app.use("/api/auth", authRoutes);
+app.use("/api/posts", postRoutes);
 
 module.exports = app;
