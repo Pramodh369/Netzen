@@ -38,6 +38,22 @@ export const createPost = createAsyncThunk(
     }
   },
 );
+
+export const updatePost = createAsyncThunk(
+  "posts/update",
+  async ({ postId, content }, thunkAPI) => {
+    try {
+      return await postService.updatePost(postId, { content });
+    } catch (error) {
+      const message =
+        error.response?.data?.message ||
+        error.message ||
+        "Something went wrong";
+      return thunkAPI.rejectWithValue(message);
+    }
+  },
+);
+
 export const addComment = createAsyncThunk(
   "posts/addComment",
   async ({ postId, text }, thunkAPI) => {
@@ -111,6 +127,11 @@ const postSlice = createSlice({
         state.isLoading = false;
         state.isSuccess = true;
         state.posts.unshift(action.payload);
+      })
+      .addCase(updatePost.fulfilled, (state, action) => {
+        state.posts = state.posts.map((post) =>
+          post._id === action.payload._id ? action.payload : post,
+        );
       })
       .addCase(addComment.fulfilled, (state, action) => {
         state.posts = state.posts.map((post) =>

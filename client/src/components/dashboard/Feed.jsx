@@ -4,6 +4,7 @@ import {
   toggleLike,
   addComment,
   deletePost,
+  updatePost,
 } from "../../features/posts/postSlice";
 import { useSelector } from "react-redux";
 import {
@@ -11,7 +12,6 @@ import {
   MessageCircle,
   Repeat2,
   Share2,
-  MoreHorizontal,
   Bookmark,
 } from "lucide-react";
 
@@ -52,8 +52,11 @@ function PostCard({ post }) {
   const [saved, setSaved] = useState(false);
   const [showComments, setShowComments] = useState(false);
   const [comment, setComment] = useState("");
+  const [isEditing, setIsEditing] = useState(false);
+  const [editContent, setEditContent] = useState(post.content);
 
   const author = post.author || {};
+  const isAuthor = user?._id === author._id;
 
   const initials =
     author.fullName
@@ -67,6 +70,26 @@ function PostCard({ post }) {
   const commentCount = post.comments?.length || 0;
   const handleLike = () => {
     dispatch(toggleLike(post._id));
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editContent.trim()) return;
+
+    const result = await dispatch(
+      updatePost({
+        postId: post._id,
+        content: editContent,
+      }),
+    );
+
+    if (updatePost.fulfilled.match(result)) {
+      setIsEditing(false);
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setEditContent(post.content);
+    setIsEditing(false);
   };
 
   return (
@@ -85,22 +108,59 @@ function PostCard({ post }) {
           </div>
         </div>
 
-        {user?._id === author._id && (
-          <button
-            onClick={() => {
-              if (window.confirm("Delete this post?")) {
-                dispatch(deletePost(post._id));
-              }
-            }}
-            className="text-red-500 text-sm hover:text-red-700"
-          >
-            Delete
-          </button>
+        {isAuthor && (
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setIsEditing(true)}
+              className="text-indigo-600 text-sm hover:text-indigo-800"
+            >
+              Edit
+            </button>
+
+            <button
+              onClick={() => {
+                if (window.confirm("Delete this post?")) {
+                  dispatch(deletePost(post._id));
+                }
+              }}
+              className="text-red-500 text-sm hover:text-red-700"
+            >
+              Delete
+            </button>
+          </div>
         )}
       </div>
 
       {/* Content */}
-      <p className="text-slate-700 leading-relaxed mb-5">{post.content}</p>
+      {isEditing ? (
+        <div className="mb-5">
+          <textarea
+            rows={3}
+            value={editContent}
+            onChange={(e) => setEditContent(e.target.value)}
+            className="w-full resize-none border rounded-lg px-3 py-2 text-sm text-slate-700 outline-none leading-relaxed"
+          />
+
+          <div className="mt-2 flex gap-2">
+            <button
+              onClick={handleSaveEdit}
+              disabled={!editContent.trim()}
+              className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              Save
+            </button>
+
+            <button
+              onClick={handleCancelEdit}
+              className="px-4 py-2 bg-slate-100 text-slate-600 rounded-lg hover:bg-slate-200"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      ) : (
+        <p className="text-slate-700 leading-relaxed mb-5">{post.content}</p>
+      )}
 
       {/* Footer */}
       <div className="flex items-center justify-between border-t pt-3">
