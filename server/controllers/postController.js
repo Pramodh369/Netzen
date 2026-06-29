@@ -1,12 +1,40 @@
 const Post = require("../models/Post");
+const cloudinary = require("../config/cloudinary");
+
+const uploadToCloudinary = (fileBuffer) => {
+  return new Promise((resolve, reject) => {
+    const stream = cloudinary.uploader.upload_stream(
+      {
+        folder: "netzen/posts",
+        resource_type: "image",
+      },
+      (error, result) => {
+        if (error) {
+          reject(error);
+        } else {
+          resolve(result);
+        }
+      }
+    );
+
+    stream.end(fileBuffer);
+  });
+};
 
 const createPost = async (req, res) => {
   try {
     const { content } = req.body;
+    let image = "";
+
+    if (req.file) {
+      const uploadResult = await uploadToCloudinary(req.file.buffer);
+      image = uploadResult.secure_url;
+    }
 
     const post = await Post.create({
       author: req.user._id,
       content,
+      image,
     });
 
     res.status(201).json(post);

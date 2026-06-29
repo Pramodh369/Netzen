@@ -1,12 +1,15 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { Image, Smile, MapPin, Send } from "lucide-react";
+import { Image, Smile, MapPin, Send, X } from "lucide-react";
 import { createPost } from "../../features/posts/postSlice";
 
 export default function CreatePost() {
   const { user } = useSelector((state) => state.auth);
   const dispatch = useDispatch();
   const [content, setContent] = useState("");
+  const [image, setImage] = useState(null);
+  const [imagePreview, setImagePreview] = useState("");
+  const imageInputRef = useRef(null);
   const maxLen = 280;
 
   const handlePost = async () => {
@@ -15,11 +18,34 @@ export default function CreatePost() {
   await dispatch(
     createPost({
       content,
+      image,
     })
   );
 
   setContent("");
+  setImage(null);
+  setImagePreview("");
+  if (imageInputRef.current) {
+    imageInputRef.current.value = "";
+  }
 };
+
+  const handleImageChange = (e) => {
+    const file = e.target.files?.[0];
+
+    if (!file) return;
+
+    setImage(file);
+    setImagePreview(URL.createObjectURL(file));
+  };
+
+  const removeImage = () => {
+    setImage(null);
+    setImagePreview("");
+    if (imageInputRef.current) {
+      imageInputRef.current.value = "";
+    }
+  };
 
   const remaining = maxLen - content.length;
   const nearLimit = remaining <= 40;
@@ -45,13 +71,42 @@ export default function CreatePost() {
             className="w-full resize-none bg-transparent text-sm text-slate-800 placeholder-slate-400 outline-none leading-relaxed"
           />
 
+          {imagePreview && (
+            <div className="relative overflow-hidden rounded-xl border border-slate-100">
+              <img
+                src={imagePreview}
+                alt="Selected post"
+                className="max-h-80 w-full object-cover"
+              />
+
+              <button
+                onClick={removeImage}
+                className="absolute right-2 top-2 p-1.5 rounded-full bg-slate-900/70 text-white hover:bg-slate-900 transition"
+                aria-label="Remove image"
+              >
+                <X className="w-4 h-4" strokeWidth={2} />
+              </button>
+            </div>
+          )}
+
           {/* Divider */}
           <div className="h-px bg-slate-100" />
 
           {/* Toolbar */}
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-1">
-              <ToolbarBtn icon={Image}   label="Add image" />
+              <input
+                ref={imageInputRef}
+                type="file"
+                accept="image/jpeg,image/jpg,image/png,image/webp"
+                onChange={handleImageChange}
+                className="hidden"
+              />
+              <ToolbarBtn
+                icon={Image}
+                label="Add image"
+                onClick={() => imageInputRef.current?.click()}
+              />
               <ToolbarBtn icon={Smile}   label="Add emoji" />
               <ToolbarBtn icon={MapPin}  label="Add location" />
             </div>
@@ -81,9 +136,11 @@ export default function CreatePost() {
   );
 }
 
-function ToolbarBtn({ icon: Icon, label }) {
+function ToolbarBtn({ icon: Icon, label, onClick }) {
   return (
     <button
+      type="button"
+      onClick={onClick}
       aria-label={label}
       className="p-2 rounded-xl text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition-all duration-150"
     >

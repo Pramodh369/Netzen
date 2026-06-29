@@ -162,6 +162,14 @@ function PostCard({ post }) {
         <p className="text-slate-700 leading-relaxed mb-5">{post.content}</p>
       )}
 
+      {post.image && (
+        <img
+          src={post.image}
+          alt="Post"
+          className="mb-5 max-h-[520px] w-full rounded-xl object-cover"
+        />
+      )}
+
       {/* Footer */}
       <div className="flex items-center justify-between border-t pt-3">
         <div className="flex gap-2">

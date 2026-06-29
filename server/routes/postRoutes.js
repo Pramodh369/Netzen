@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const protect = require("../middleware/protect");
+const uploadPostImage = require("../middleware/upload");
 
 const {
   createPost,
@@ -12,7 +13,7 @@ const {
 } = require("../controllers/postController");
 
 router.get("/", protect, getPosts);
-router.post("/", protect, createPost);
+router.post("/", protect, uploadPostImage, createPost);
 router.put("/:id", protect, updatePost);
 router.put("/:id/like", protect, toggleLike);
 router.post("/:id/comment", protect, addComment);

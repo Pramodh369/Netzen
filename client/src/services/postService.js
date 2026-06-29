@@ -31,7 +31,16 @@ const createPost = async (postData) => {
     },
   };
 
-  const response = await axios.post(API_URL, postData, config);
+  if (postData.image) {
+    const formData = new FormData();
+    formData.append("content", postData.content);
+    formData.append("image", postData.image);
+
+    const response = await axios.post(API_URL, formData, config);
+    return response.data;
+  }
+
+  const response = await axios.post(API_URL, { content: postData.content }, config);
   return response.data;
 };
 
