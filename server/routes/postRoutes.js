@@ -5,6 +5,7 @@ const protect = require("../middleware/protect");
 const {
   createPost,
   getPosts,
+    addComment,
   toggleLike,
 } = require("../controllers/postController");
 
@@ -13,5 +14,6 @@ const {
 router.get("/", protect, getPosts);
 router.post("/", protect, createPost);
 router.put("/:id/like", protect, toggleLike);
+router.post("/:id/comment", protect, addComment);
 
 module.exports = router;

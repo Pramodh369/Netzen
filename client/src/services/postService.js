@@ -34,6 +34,24 @@ const createPost = async (postData) => {
   const response = await axios.post(API_URL, postData, config);
   return response.data;
 };
+// Add comment
+const addComment = async (postId, text) => {
+  const token = getToken();
+
+  const config = {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  };
+
+  const response = await axios.post(
+    `${API_URL}/${postId}/comment`,
+    { text },
+    config
+  );
+
+  return response.data;
+};
 
 // Like / Unlike post
 const toggleLike = async (postId) => {
@@ -58,6 +76,7 @@ const postService = {
   getPosts,
   createPost,
   toggleLike,
+   addComment,
 };
 
 export default postService;
