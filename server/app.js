@@ -2,6 +2,7 @@ const express = require("express");
 const cors = require("cors");
 const helmet = require("helmet");
 const morgan = require("morgan");
+const authRoutes = require("./routes/authRoutes");
 
 const app = express();
 
@@ -21,5 +22,6 @@ app.get("/api/health", (req, res) => {
     message: "Netzen API is running",
   });
 });
+app.use("/api/auth", authRoutes);
 
 module.exports = app;
