@@ -83,6 +83,48 @@ const followUser = async (userId) => {
   return response.data;
 };
 
+const getFollowSuggestions = async () => {
+  const token = getToken();
+
+  const config = {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  };
+
+  const response = await axios.get(`${BASE_URL}/users/suggestions`, config);
+  return response.data;
+};
+
+const getUserActivity = async () => {
+  const token = getToken();
+
+  const config = {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  };
+
+  const response = await axios.get(`${BASE_URL}/users/activity`, config);
+  return response.data;
+};
+
+const searchUsers = async (query) => {
+  const token = getToken();
+
+  const config = {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+    params: {
+      q: query,
+    },
+  };
+
+  const response = await axios.get(`${BASE_URL}/users/search`, config);
+  return response.data;
+};
+
 const unfollowUser = async (userId) => {
   const token = getToken();
 
@@ -109,6 +151,9 @@ const authService = {
   updateProfile,
   followUser,
   unfollowUser,
+  getFollowSuggestions,
+  getUserActivity,
+  searchUsers,
 };
 
 export default authService;

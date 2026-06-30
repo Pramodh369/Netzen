@@ -198,6 +198,59 @@ const searchUsers = async (req, res) => {
   }
 };
 
+const getFollowSuggestions = async (req, res) => {
+  try {
+    const currentUser = await User.findById(req.user._id).select("following");
+
+    if (!currentUser) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const users = await User.find({
+      _id: {
+        $ne: req.user._id,
+        $nin: currentUser.following,
+      },
+    })
+      .select("_id fullName username profilePicture")
+      .sort({ createdAt: -1 })
+      .limit(3);
+
+    return res.status(200).json(users);
+  } catch (error) {
+    console.error("getFollowSuggestions error:", error.message);
+    return res.status(500).json({
+      message: "Server error",
+    });
+  }
+};
+
+const getUserActivity = async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id).select(
+      "followers following createdAt"
+    );
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const posts = await Post.countDocuments({ author: req.user._id });
+
+    return res.status(200).json({
+      posts,
+      followers: user.followers.length,
+      following: user.following.length,
+      memberSince: user.createdAt,
+    });
+  } catch (error) {
+    console.error("getUserActivity error:", error.message);
+    return res.status(500).json({
+      message: "Server error",
+    });
+  }
+};
+
 const updateProfile = async (req, res) => {
   try {
     const user = await User.findById(req.user._id);
@@ -351,6 +404,8 @@ module.exports = {
   getProfile,
   getUserProfile,
   searchUsers,
+  getFollowSuggestions,
+  getUserActivity,
   updateProfile,
   followUser,
   unfollowUser,

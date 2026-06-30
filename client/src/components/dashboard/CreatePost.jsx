@@ -107,8 +107,18 @@ export default function CreatePost() {
                 label="Add image"
                 onClick={() => imageInputRef.current?.click()}
               />
-              <ToolbarBtn icon={Smile}   label="Add emoji" />
-              <ToolbarBtn icon={MapPin}  label="Add location" />
+              <ToolbarBtn
+                icon={Smile}
+                label="Add emoji"
+                disabled
+                tooltip="Emoji reactions coming soon."
+              />
+              <ToolbarBtn
+                icon={MapPin}
+                label="Add location"
+                disabled
+                tooltip="Location tagging coming soon."
+              />
             </div>
 
             <div className="flex items-center gap-3">
@@ -136,15 +146,27 @@ export default function CreatePost() {
   );
 }
 
-function ToolbarBtn({ icon: Icon, label, onClick }) {
+function ToolbarBtn({ icon: Icon, label, onClick, disabled = false, tooltip }) {
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      aria-label={label}
-      className="p-2 rounded-xl text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition-all duration-150"
-    >
-      <Icon className="w-4 h-4" strokeWidth={1.75} />
-    </button>
+    <span className="relative group">
+      <button
+        type="button"
+        onClick={disabled ? undefined : onClick}
+        aria-label={label}
+        disabled={disabled}
+        className={`p-2 rounded-xl text-slate-400 transition-all duration-150 ${
+          disabled
+            ? "cursor-not-allowed opacity-70"
+            : "hover:text-indigo-600 hover:bg-indigo-50"
+        }`}
+      >
+        <Icon className="w-4 h-4" strokeWidth={1.75} />
+      </button>
+      {tooltip && (
+        <span className="pointer-events-none absolute left-1/2 top-full z-20 mt-2 w-max max-w-48 -translate-x-1/2 rounded-lg bg-slate-900 px-3 py-1.5 text-xs font-medium text-white opacity-0 shadow-lg transition-opacity duration-150 group-hover:opacity-100">
+          {tooltip}
+        </span>
+      )}
+    </span>
   );
 }

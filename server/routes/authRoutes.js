@@ -9,6 +9,8 @@ const {
   getProfile,
   getUserProfile,
   searchUsers,
+  getFollowSuggestions,
+  getUserActivity,
   updateProfile,
   followUser,
   unfollowUser,
@@ -23,6 +25,8 @@ router.post("/login", validateLogin, loginUser);
 router.get("/profile", protect, getProfile);
 router.put("/profile", protect, uploadProfileImages, updateProfile);
 router.get("/users/search", protect, searchUsers);
+router.get("/users/suggestions", protect, getFollowSuggestions);
+router.get("/users/activity", protect, getUserActivity);
 router.get("/profile/:username", protect, getUserProfile);
 router.put("/users/:id/follow", protect, followUser);
 router.put("/users/:id/unfollow", protect, unfollowUser);
