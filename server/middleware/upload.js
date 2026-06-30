@@ -27,4 +27,20 @@ const uploadPostImage = (req, res, next) => {
   });
 };
 
-module.exports = uploadPostImage;
+const uploadProfileImages = (req, res, next) => {
+  upload.fields([
+    { name: "avatar", maxCount: 1 },
+    { name: "coverImage", maxCount: 1 },
+  ])(req, res, (error) => {
+    if (error) {
+      return res.status(400).json({ message: error.message });
+    }
+
+    next();
+  });
+};
+
+module.exports = {
+  uploadPostImage,
+  uploadProfileImages,
+};

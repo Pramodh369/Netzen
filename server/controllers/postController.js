@@ -1,25 +1,5 @@
 const Post = require("../models/Post");
-const cloudinary = require("../config/cloudinary");
-
-const uploadToCloudinary = (fileBuffer) => {
-  return new Promise((resolve, reject) => {
-    const stream = cloudinary.uploader.upload_stream(
-      {
-        folder: "netzen/posts",
-        resource_type: "image",
-      },
-      (error, result) => {
-        if (error) {
-          reject(error);
-        } else {
-          resolve(result);
-        }
-      }
-    );
-
-    stream.end(fileBuffer);
-  });
-};
+const uploadToCloudinary = require("../utils/uploadToCloudinary");
 
 const createPost = async (req, res) => {
   try {
@@ -27,7 +7,7 @@ const createPost = async (req, res) => {
     let image = "";
 
     if (req.file) {
-      const uploadResult = await uploadToCloudinary(req.file.buffer);
+      const uploadResult = await uploadToCloudinary(req.file.buffer, "netzen/posts");
       image = uploadResult.secure_url;
     }
 
