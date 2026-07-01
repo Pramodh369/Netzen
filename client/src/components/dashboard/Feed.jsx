@@ -10,13 +10,24 @@ import { useSelector } from "react-redux";
 import {
   Heart,
   MessageCircle,
-  Repeat2,
-  Share2,
   Bookmark,
 } from "lucide-react";
 
-export default function Feed() {
+export default function Feed({ searchQuery = "" }) {
   const { posts, isLoading } = useSelector((state) => state.posts);
+  const normalizedQuery = searchQuery.trim().toLowerCase();
+  const filteredPosts = normalizedQuery
+    ? posts?.filter((post) => {
+        const author = post.author || {};
+        return [
+          post.content,
+          author.fullName,
+          author.username,
+        ]
+          .filter(Boolean)
+          .some((value) => value.toLowerCase().includes(normalizedQuery));
+      })
+    : posts;
 
 
   if (isLoading) {
@@ -35,9 +46,17 @@ export default function Feed() {
     );
   }
 
+  if (!filteredPosts || filteredPosts.length === 0) {
+    return (
+      <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-8 text-center text-slate-500 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-400">
+        No posts match your search.
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col gap-3">
-      {posts.map((post) => (
+      {filteredPosts.map((post) => (
         <PostCard key={post._id} post={post} />
       ))}
     </div>
@@ -93,7 +112,7 @@ function PostCard({ post }) {
   };
 
   return (
-    <article className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 hover:shadow-md transition">
+    <article className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 hover:shadow-md transition dark:border-slate-800 dark:bg-slate-900">
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
@@ -102,7 +121,7 @@ function PostCard({ post }) {
           </div>
 
           <div>
-            <h3 className="font-semibold text-slate-800">{author.fullName}</h3>
+            <h3 className="font-semibold text-slate-800 dark:text-slate-100">{author.fullName}</h3>
 
             <p className="text-xs text-slate-400">@{author.username}</p>
           </div>
@@ -112,7 +131,7 @@ function PostCard({ post }) {
           <div className="flex items-center gap-3">
             <button
               onClick={() => setIsEditing(true)}
-              className="text-indigo-600 text-sm hover:text-indigo-800"
+              className="cursor-pointer text-indigo-600 text-sm hover:text-indigo-800"
             >
               Edit
             </button>
@@ -123,7 +142,7 @@ function PostCard({ post }) {
                   dispatch(deletePost(post._id));
                 }
               }}
-              className="text-red-500 text-sm hover:text-red-700"
+              className="cursor-pointer text-red-500 text-sm hover:text-red-700"
             >
               Delete
             </button>
@@ -138,28 +157,28 @@ function PostCard({ post }) {
             rows={3}
             value={editContent}
             onChange={(e) => setEditContent(e.target.value)}
-            className="w-full resize-none border rounded-lg px-3 py-2 text-sm text-slate-700 outline-none leading-relaxed"
+            className="w-full resize-none border rounded-lg px-3 py-2 text-sm text-slate-700 outline-none leading-relaxed dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
           />
 
           <div className="mt-2 flex gap-2">
             <button
               onClick={handleSaveEdit}
               disabled={!editContent.trim()}
-              className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-40 disabled:cursor-not-allowed"
+              className="cursor-pointer px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-40 disabled:cursor-not-allowed"
             >
               Save
             </button>
 
             <button
               onClick={handleCancelEdit}
-              className="px-4 py-2 bg-slate-100 text-slate-600 rounded-lg hover:bg-slate-200"
+              className="cursor-pointer px-4 py-2 bg-slate-100 text-slate-600 rounded-lg hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
             >
               Cancel
             </button>
           </div>
         </div>
       ) : (
-        <p className="text-slate-700 leading-relaxed mb-5">{post.content}</p>
+        <p className="text-slate-700 leading-relaxed mb-5 dark:text-slate-200">{post.content}</p>
       )}
 
       {post.image && (
@@ -171,14 +190,14 @@ function PostCard({ post }) {
       )}
 
       {/* Footer */}
-      <div className="flex items-center justify-between border-t pt-3">
+      <div className="flex items-center justify-between border-t border-slate-100 pt-3 dark:border-slate-800">
         <div className="flex gap-2">
           <button
             onClick={handleLike}
-            className={`flex items-center gap-1 px-3 py-2 rounded-xl transition ${
+            className={`cursor-pointer flex items-center gap-1 px-3 py-2 rounded-xl transition ${
               post.likes?.length > 0
                 ? "text-red-500 bg-red-50"
-                : "text-slate-500 hover:bg-slate-100"
+                : "text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800"
             }`}
           >
             <Heart
@@ -190,28 +209,20 @@ function PostCard({ post }) {
 
           <button
             onClick={() => setShowComments(!showComments)}
-            className="flex items-center gap-1 px-3 py-2 rounded-xl text-slate-500 hover:bg-slate-100"
+            className="cursor-pointer flex items-center gap-1 px-3 py-2 rounded-xl text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800"
           >
             <MessageCircle className="w-4 h-4" />
             {commentCount}
           </button>
-
-          <button className="flex items-center gap-1 px-3 py-2 rounded-xl text-slate-500 hover:bg-slate-100">
-            <Repeat2 className="w-4 h-4" />
-          </button>
         </div>
 
         <div className="flex gap-2">
-          <button className="p-2 rounded-xl hover:bg-slate-100">
-            <Share2 className="w-4 h-4" />
-          </button>
-
           <button
             onClick={() => setSaved(!saved)}
-            className={`p-2 rounded-xl ${
+            className={`cursor-pointer p-2 rounded-xl ${
               saved
                 ? "text-indigo-600 bg-indigo-50"
-                : "text-slate-500 hover:bg-slate-100"
+                : "text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800"
             }`}
           >
             <Bookmark
@@ -222,14 +233,14 @@ function PostCard({ post }) {
         </div>
       </div>
       {showComments && (
-        <div className="mt-4 border-t pt-4">
+        <div className="mt-4 border-t border-slate-100 pt-4 dark:border-slate-800">
           <div className="flex gap-2">
             <input
               type="text"
               value={comment}
               onChange={(e) => setComment(e.target.value)}
               placeholder="Write a comment..."
-              className="flex-1 border rounded-lg px-3 py-2 text-sm outline-none"
+              className="flex-1 border rounded-lg px-3 py-2 text-sm outline-none dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
             />
 
             <button
@@ -245,7 +256,7 @@ function PostCard({ post }) {
 
                 setComment("");
               }}
-              className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
+              className="cursor-pointer px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
             >
               Comment
             </button>
@@ -254,10 +265,10 @@ function PostCard({ post }) {
           {post.comments?.length > 0 && (
             <div className="mt-4 space-y-3">
               {post.comments.map((c) => (
-                <div key={c._id} className="bg-slate-50 rounded-lg p-3">
-                  <p className="text-sm font-semibold">{c.user?.fullName}</p>
+                <div key={c._id} className="bg-slate-50 rounded-lg p-3 dark:bg-slate-950">
+                  <p className="text-sm font-semibold dark:text-slate-100">{c.user?.fullName}</p>
 
-                  <p className="text-sm text-slate-600">{c.text}</p>
+                  <p className="text-sm text-slate-600 dark:text-slate-300">{c.text}</p>
                 </div>
               ))}
             </div>

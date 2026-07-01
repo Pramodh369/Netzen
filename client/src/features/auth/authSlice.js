@@ -48,8 +48,8 @@ export const logoutUser = createAsyncThunk(
   async (_, thunkAPI) => {
     try {
       await authService.logout();
-      localStorage.removeItem("netzen_token");
-      localStorage.removeItem("netzen_user");
+      window.socket?.disconnect?.();
+      localStorage.clear();
     } catch {
       return thunkAPI.rejectWithValue("Logout failed");
     }

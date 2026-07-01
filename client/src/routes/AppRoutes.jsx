@@ -1,4 +1,5 @@
-import { Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route } from "react-router-dom";
+import Landing from "../pages/Landing";
 import Login from "../pages/Login";
 import Register from "../pages/Register";
 import ProtectedRoute from "../components/common/ProtectedRoute";
@@ -9,12 +10,13 @@ import Notifications from "../pages/Notifications";
 import Messages from "../pages/Messages";
 import Community from "../pages/Community";
 import Saved from "../pages/Saved";
+import Settings from "../pages/Settings";
 
 
 export default function AppRoutes() {
   return (
     <Routes>
-      <Route path="/" element={<Navigate to="/login" replace />} />
+      <Route path="/" element={<Landing />} />
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
       <Route
@@ -78,6 +80,14 @@ export default function AppRoutes() {
         element={
           <ProtectedRoute>
             <Saved />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/settings"
+        element={
+          <ProtectedRoute>
+            <Settings />
           </ProtectedRoute>
         }
       />

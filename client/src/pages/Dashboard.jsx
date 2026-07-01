@@ -11,18 +11,19 @@ import { followUser } from "../features/auth/authSlice";
 import { getPosts } from "../features/posts/postSlice";
 
 const TRENDING = [
-  { tag: "react",      posts: "42.8k posts" },
-  { tag: "javascript", posts: "38.4k posts" },
-  { tag: "nodejs",     posts: "24.7k posts" },
-  { tag: "typescript", posts: "21.3k posts" },
-  { tag: "mongodb",    posts: "12.9k posts" },
-  { tag: "opensource", posts: "9.6k posts"  },
+  { tag: "react",      posts: "87 posts" },
+  { tag: "javascript", posts: "76 posts" },
+  { tag: "nodejs",     posts: "69 posts" },
+  { tag: "typescript", posts: "58 posts" },
+  { tag: "mongodb",    posts: "44 posts" },
+  { tag: "opensource", posts: "31 posts" },
 ];
 
 export default function Dashboard() {
   const dispatch = useDispatch();
   const [suggestions, setSuggestions] = useState([]);
   const [activity, setActivity] = useState(null);
+  const [searchQuery, setSearchQuery] = useState("");
 
 useEffect(() => {
   dispatch(getPosts());
@@ -54,7 +55,7 @@ useEffect(() => {
     : "--";
 
   return (
-    <DashboardLayout>
+    <DashboardLayout searchQuery={searchQuery} onSearchChange={setSearchQuery}>
       <div className="max-w-6xl mx-auto">
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-6">
 
@@ -62,7 +63,7 @@ useEffect(() => {
           <div className="flex flex-col gap-4 min-w-0">
             <Stories />
             <CreatePost />
-            <Feed />
+            <Feed searchQuery={searchQuery} />
           </div>
 
           {/* Right panel */}
@@ -77,15 +78,15 @@ useEffect(() => {
               <ul className="space-y-0.5">
                 {TRENDING.map((t, i) => (
                   <li key={t.tag}>
-                    <button className="w-full flex items-center justify-between px-2 py-2 rounded-xl hover:bg-slate-50 transition-colors group text-left">
+                    <div className="w-full flex items-center justify-between px-2 py-2 rounded-xl transition-colors group text-left">
                       <div>
                         <span className="text-xs text-slate-400 font-medium">#{i + 1}</span>
-                        <p className="text-sm font-semibold text-slate-700 group-hover:text-indigo-600 transition-colors">
+                        <p className="text-sm font-semibold text-slate-700 transition-colors dark:text-slate-200">
                           #{t.tag}
                         </p>
                       </div>
                       <span className="text-xs text-slate-400">{t.posts}</span>
-                    </button>
+                    </div>
                   </li>
                 ))}
               </ul>

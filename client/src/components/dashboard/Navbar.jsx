@@ -1,187 +1,184 @@
-import axios from "axios";
 import { useEffect, useRef, useState } from "react";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import { Search, Bell, MessageCircle, Sun } from "lucide-react";
+import {
+  Bell,
+  LogOut,
+  Menu,
+  MessageCircle,
+  Search,
+  User,
+  X,
+} from "lucide-react";
+import { logoutUser } from "../../features/auth/authSlice";
 
-export default function Navbar() {
-  const { user } = useSelector((state) => state.auth);
+export default function Navbar({
+  searchQuery = "",
+  onSearchChange,
+  onMenuClick,
+}) {
+  const dispatch = useDispatch();
   const navigate = useNavigate();
-  const [query, setQuery] = useState("");
-  const [results, setResults] = useState([]);
-  const [showDropdown, setShowDropdown] = useState(false);
-  const [hasSearched, setHasSearched] = useState(false);
-  const searchRef = useRef(null);
+  const { user } = useSelector((state) => state.auth);
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [showProfile, setShowProfile] = useState(false);
+ 
+  const notificationsRef = useRef(null);
+  const profileRef = useRef(null);
 
   useEffect(() => {
-    const trimmedQuery = query.trim();
-
-    if (!trimmedQuery) return;
-
-    const timeoutId = setTimeout(async () => {
-      try {
-        const token = localStorage.getItem("netzen_token");
-        const response = await axios.get("/api/auth/users/search", {
-          params: { q: trimmedQuery },
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-
-        setResults(response.data);
-        setHasSearched(true);
-        setShowDropdown(true);
-      } catch (error) {
-        console.error("User search failed:", error.message);
-        setResults([]);
-        setHasSearched(true);
-        setShowDropdown(true);
+    const handleClickOutside = (event) => {
+      if (
+        notificationsRef.current &&
+        !notificationsRef.current.contains(event.target)
+      ) {
+        setShowNotifications(false);
       }
-    }, 300);
 
-    return () => clearTimeout(timeoutId);
-  }, [query]);
-
-  useEffect(() => {
-    const handleClickOutside = (e) => {
-      if (searchRef.current && !searchRef.current.contains(e.target)) {
-        setShowDropdown(false);
+      if (profileRef.current && !profileRef.current.contains(event.target)) {
+        setShowProfile(false);
       }
     };
 
     document.addEventListener("mousedown", handleClickOutside);
-
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const handleUserClick = (username) => {
-    setQuery("");
-    setResults([]);
-    setShowDropdown(false);
-    setHasSearched(false);
-    navigate(`/profile/${username}`);
+  const handleLogout = async () => {
+    await dispatch(logoutUser());
+    setShowProfile(false);
+    navigate("/login", { replace: true });
   };
 
-  const handleQueryChange = (e) => {
-    const value = e.target.value;
-
-    setQuery(value);
-
-    if (!value.trim()) {
-      setResults([]);
-      setShowDropdown(false);
-      setHasSearched(false);
-    }
-  };
+  const initials =
+    user?.fullName
+      ?.split(" ")
+      .map((word) => word[0])
+      .join("")
+      .substring(0, 2)
+      .toUpperCase() || "U";
 
   return (
-    <header className="sticky top-0 z-20 bg-white/80 backdrop-blur-md border-b border-slate-100 px-6 py-3">
-      <div className="flex items-center gap-4">
+    <header className="sticky top-0 z-20 border-b border-slate-100 bg-white/85 px-4 py-3 backdrop-blur-md transition-colors duration-200 dark:border-slate-800 dark:bg-slate-900/85 sm:px-6">
+      <div className="flex items-center gap-3">
+        <button
+          type="button"
+          aria-label="Open navigation"
+          onClick={onMenuClick}
+          className="rounded-xl p-2 text-slate-500 transition hover:bg-slate-100 hover:text-indigo-600 lg:hidden dark:text-slate-400 dark:hover:bg-slate-800"
+        >
+          <Menu className="h-5 w-5" strokeWidth={2} />
+        </button>
 
-        {/* Search */}
-        <div ref={searchRef} className="relative flex-1 max-w-md">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+        <div className="relative flex-1 max-w-xl">
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
           <input
             type="text"
-            placeholder="Search Netzen…"
-            value={query}
-            onChange={handleQueryChange}
-            onFocus={() => {
-              if (query.trim() && hasSearched) {
-                setShowDropdown(true);
-              }
-            }}
-            className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-9 pr-4 py-2 text-sm text-slate-700 placeholder-slate-400 outline-none transition focus:bg-white focus:border-indigo-300 focus:ring-2 focus:ring-indigo-100"
+            placeholder="Search posts..."
+            value={searchQuery}
+            onChange={(event) => onSearchChange?.(event.target.value)}
+            className="w-full rounded-xl border border-slate-200 bg-slate-50 py-2 pl-9 pr-10 text-sm text-slate-700 outline-none transition focus:border-indigo-300 focus:bg-white focus:ring-2 focus:ring-indigo-100 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-100 dark:focus:border-indigo-500 dark:focus:ring-indigo-500/20"
           />
-
-          {showDropdown && (
-            <div className="absolute left-0 right-0 top-full mt-2 bg-white border border-slate-100 rounded-2xl shadow-lg shadow-slate-200/60 overflow-hidden z-50">
-              {results.length > 0 ? (
-                results.map((result) => {
-                  const initials =
-                    result.fullName
-                      ?.split(" ")
-                      .map((word) => word[0])
-                      .join("")
-                      .substring(0, 2)
-                      .toUpperCase() || "U";
-
-                  return (
-                    <button
-                      key={result._id}
-                      onClick={() => handleUserClick(result.username)}
-                      className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-slate-50 transition-colors"
-                    >
-                      <div className="w-9 h-9 rounded-full bg-gradient-to-br from-blue-400 to-indigo-500 flex items-center justify-center shrink-0 overflow-hidden shadow-sm">
-                        {result.profilePicture ? (
-                          <img
-                            src={result.profilePicture}
-                            alt={result.fullName}
-                            className="h-full w-full object-cover"
-                          />
-                        ) : (
-                          <span className="text-xs font-bold text-white uppercase">
-                            {initials}
-                          </span>
-                        )}
-                      </div>
-
-                      <div className="min-w-0">
-                        <p className="text-sm font-semibold text-slate-800 truncate">
-                          {result.fullName}
-                        </p>
-                        <p className="text-xs text-slate-400 truncate">
-                          @{result.username}
-                        </p>
-                      </div>
-                    </button>
-                  );
-                })
-              ) : (
-                <div className="px-4 py-3 text-sm text-slate-500">
-                  No users found
-                </div>
-              )}
-            </div>
+          {searchQuery && (
+            <button
+              type="button"
+              aria-label="Clear search"
+              onClick={() => onSearchChange?.("")}
+              className="absolute right-2 top-1/2 -translate-y-1/2 rounded-lg p-1 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-slate-800 dark:hover:text-slate-200"
+            >
+              <X className="h-4 w-4" strokeWidth={2} />
+            </button>
           )}
         </div>
 
-        {/* Spacer */}
-        <div className="flex-1" />
-
-        {/* Actions */}
-        <div className="flex items-center gap-1">
-          <NavIconBtn icon={Sun} label="Theme" />
-          <NavIconBtn icon={MessageCircle} label="Messages" badge={3} />
-          <NavIconBtn icon={Bell} label="Notifications" badge={7} />
+        <div className="ml-auto flex items-center gap-1">
+          
+          <NavIconBtn
+            icon={MessageCircle}
+            label="Messages"
+            onClick={() => navigate("/messages")}
+          />
+          <div ref={notificationsRef} className="relative">
+            <NavIconBtn
+              icon={Bell}
+              label="Notifications"
+              badge={0}
+              onClick={() => setShowNotifications((value) => !value)}
+            />
+            {showNotifications && (
+              <div className="absolute right-0 top-full mt-2 w-72 rounded-2xl border border-slate-100 bg-white p-4 shadow-lg shadow-slate-200/60 dark:border-slate-800 dark:bg-slate-900 dark:shadow-black/20">
+                <p className="text-sm font-bold text-slate-800 dark:text-slate-100">
+                  Notifications
+                </p>
+                <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
+                  No notifications yet.
+                </p>
+              </div>
+            )}
+          </div>
         </div>
 
-        {/* Avatar */}
-        <div className="flex items-center gap-2.5 pl-3 border-l border-slate-100 cursor-pointer group">
-          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-400 to-indigo-500 flex items-center justify-center shadow-sm ring-2 ring-white group-hover:ring-indigo-200 transition-all">
-            <span className="text-xs font-bold text-white uppercase">
-              {user?.fullName?.[0] ?? "U"}
-            </span>
-          </div>
-          <div className="hidden sm:block">
-            <p className="text-sm font-semibold text-slate-800 leading-tight">{user?.fullName ?? "User"}</p>
-            <p className="text-xs text-slate-400">@{user?.username ?? "username"}</p>
-          </div>
+        <div ref={profileRef} className="relative">
+          <button
+            type="button"
+            onClick={() => setShowProfile((value) => !value)}
+            className="flex cursor-pointer items-center gap-2.5 border-l border-slate-100 pl-3 transition dark:border-slate-800"
+          >
+            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-blue-400 to-indigo-500 shadow-sm ring-2 ring-white transition-all hover:ring-indigo-200 dark:ring-slate-900 dark:hover:ring-indigo-400/40">
+              <span className="text-xs font-bold uppercase text-white">
+                {initials}
+              </span>
+            </div>
+            <div className="hidden text-left sm:block">
+              <p className="text-sm font-semibold leading-tight text-slate-800 dark:text-slate-100">
+                {user?.fullName ?? "User"}
+              </p>
+              <p className="text-xs text-slate-400">
+                @{user?.username ?? "username"}
+              </p>
+            </div>
+          </button>
+
+          {showProfile && (
+            <div className="absolute right-0 top-full mt-2 w-56 overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-lg shadow-slate-200/60 dark:border-slate-800 dark:bg-slate-900 dark:shadow-black/20">
+              <button
+                type="button"
+                onClick={() => {
+                  setShowProfile(false);
+                  navigate("/profile");
+                }}
+                className="flex w-full items-center gap-3 px-4 py-3 text-left text-sm font-semibold text-slate-600 transition hover:bg-slate-50 hover:text-indigo-600 dark:text-slate-300 dark:hover:bg-slate-800"
+              >
+                <User className="h-4 w-4" strokeWidth={2} />
+                View profile
+              </button>
+              <button
+                type="button"
+                onClick={handleLogout}
+                className="flex w-full items-center gap-3 px-4 py-3 text-left text-sm font-semibold text-red-500 transition hover:bg-red-50 dark:hover:bg-red-500/10"
+              >
+                <LogOut className="h-4 w-4" strokeWidth={2} />
+                Log out
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </header>
   );
 }
 
-function NavIconBtn({ icon: Icon, label, badge }) {
+function NavIconBtn({ icon: Icon, label, badge, onClick }) {
   return (
     <button
+      type="button"
       aria-label={label}
-      className="relative p-2 rounded-xl text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 transition-all duration-150"
+      onClick={onClick}
+      className="relative cursor-pointer rounded-xl p-2 text-slate-500 transition-all duration-150 hover:bg-indigo-50 hover:text-indigo-600 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-indigo-300"
     >
-      <Icon className="w-5 h-5" strokeWidth={1.75} />
+      <Icon className="h-5 w-5" strokeWidth={1.75} />
       {badge > 0 && (
-        <span className="absolute top-1 right-1 w-4 h-4 rounded-full bg-indigo-600 text-white text-[9px] font-bold flex items-center justify-center leading-none">
+        <span className="absolute right-1 top-1 flex h-4 w-4 items-center justify-center rounded-full bg-indigo-600 text-[9px] font-bold leading-none text-white">
           {badge}
         </span>
       )}
